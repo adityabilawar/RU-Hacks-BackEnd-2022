@@ -8,12 +8,15 @@ const util = require("util"); // import util
 const exec = util.promisify(require("child_process").exec); // exec
 const fs = require("fs");
 const _ = require("lodash");
+const stringSimilarity = require("string-similarity");
 
 const getDirectories = (source) =>
   fs
     .readdirSync(source, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
     .map((dirent) => dirent.name);
+
+const wordDatabase = getDirectories("./ed-sheeran/"); // get dbs
 
 //MiddleWare
 app.use((req, res, next) => {
@@ -48,11 +51,18 @@ app.post("/sound", async (req, res) => {
 
   words.forEach((word) => {
     const newWord = word.toLowerCase().trim();
-    const checkComma = newWord.split(",");
+    let checkComma = newWord.split(",");
+
+    if (checkComma[0] === "" && checkComma[1] === "") {
+      checkComma.pop();
+    }
 
     checkComma.forEach(async (word) => {
-      const finalWord = word === "" ? "delay_time" : word;
-      console.log(finalWord);
+      const finalWord = stringSimilarity.findBestMatch(
+        word === "" ? "delay_time" : word,
+        wordDatabase
+      ).bestMatch.target;
+
       try {
         const files = await fs.promises.readdir(`./ed-sheeran/${finalWord}`);
         const wordVariant = _.sample(files);
@@ -60,10 +70,21 @@ app.post("/sound", async (req, res) => {
       } catch (error) {
         console.log(error);
       }
+
+      console.log(
+        "DEBUG:",
+        finalWord,
+        "- ORIG:",
+        word === "" ? "delay_time" : word
+      );
     });
   });
 
-  await exec("ffmpeg -f concat -safe 0  -i log.txt -c copy -y -ac 1 out.wav");
+  try {
+    await exec("ffmpeg -f concat -safe 0  -i log.txt -c copy -y -ac 1 out.wav");
+  } catch (error) {
+    console.log(error);
+  }
 
   return res.status(200).send({ result: "Ready to download" });
 });
