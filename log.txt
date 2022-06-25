@@ -1,0 +1,7 @@
+file ./ed-sheeran/she/she.wav
+file ./ed-sheeran/kiss/kiss.wav
+file ./ed-sheeran/me/me.wav
+file ./ed-sheeran/delay_time/delay_time.wav
+file ./ed-sheeran/i/I-1.wav
+file ./ed-sheeran/love/love-1.wav
+file ./ed-sheeran/you/you-1.wav
