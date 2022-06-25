@@ -17,6 +17,7 @@
     "prompt": "latest",
     "recordrtc": "^5.6.2",
     "similarity": "^1.2.1",
+    "string-similarity": "^4.0.4",
     "ts-ebml": "^2.0.2"
   },
   "name": "ru-hack-backend",
