@@ -106,7 +106,7 @@ async function main() {
       }.wav`;
 
       await exec(
-        `ffmpeg -f concat  -safe 0  -i concat.txt -c copy -y -ac 1 out2.wav`
+        `ffmpeg -i ${originalAudioPath} -ss ${startSecs} -to ${endSecs} -c:v copy -ac 1 ${outputAudio}`
       );
     });
   });
