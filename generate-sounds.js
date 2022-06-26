@@ -4,9 +4,21 @@ const fs = require("fs");
 const util = require("util"); // import util
 const exec = util.promisify(require("child_process").exec); // exec
 
+const getDirectories = (source) =>
+  fs
+    .readdirSync(source, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory())
+    .map((dirent) => dirent.name);
+
+//CockroachDB
+const Pool = require("pg").Pool;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
 const gcpStorage = new Storage({
-  projectId: process.env.PROJECT_ID,
-  keyFilename: process.env.KEY_FILE,
+  projectId: "PUBLIC_APIKEY",
+  keyFilename: "PUBLIC_APIKEY-ID.json",
 });
 
 async function main() {
@@ -50,8 +62,8 @@ async function main() {
 
   // Perform Word Timestamp
   const client = new speech.SpeechClient({
-    projectId: "persisbot-iddv",
-    keyFilename: "persisbot-iddv-1ad22d657e1f.json",
+    projectId: "PUBLIC_APIKEY",
+    keyFilename: "PUBLIC_APIKEY-ID.json",
   });
 
   const audio = {
@@ -110,7 +122,21 @@ async function main() {
       );
     });
   });
+
   console.log("ENDING");
+
+  const wordDatabase = getDirectories(wordsPath); // GRAB all words that have been extracted
+
+  // Store them to COCKROACH_DB
+  await Promise.all(
+    wordDatabase.map((word) => {
+      return pool.query(
+        "INSERT INTO words (word, url) VALUES ($1, $2) RETURNING *",
+        [word, `${wordsPath}/${word}`]
+      );
+    })
+  );
+
   process.exit(1);
 }
 
