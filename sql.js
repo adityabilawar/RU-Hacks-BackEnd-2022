@@ -16,8 +16,7 @@ var queries = fs
   });
 
 const pool = new Pool({
-  connectionString:
-    "postgresql://duy:l1wDwh5p9PiQCwvTCjFZBQ@free-tier9.gcp-us-west2.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full&options=--cluster%3Dspotty-gnoll-517",
+  connectionString: process.env.DATABASE_URL,
 });
 (async () => {
   queries.forEach(async (sql) => {
