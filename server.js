@@ -10,6 +10,12 @@ const fs = require("fs");
 const _ = require("lodash");
 const stringSimilarity = require("string-similarity");
 
+//CockroachDB
+const Pool = require("pg").Pool;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
 const getDirectories = (source) =>
   fs
     .readdirSync(source, { withFileTypes: true })
@@ -38,9 +44,31 @@ app.use(bodyParse.urlencoded({ extended: true }));
 app.use(bodyParse.json());
 app.use(morgan("dev"));
 
-// HELLO
-app.get("/", (req, res) => {
-  res.status(200).send({ msg: "Hello" });
+// Extract and store sound data
+app.get("/", async (req, res) => {
+  try {
+    await Promise.all(
+      wordDatabase.map((word) => {
+        return pool.query(
+          "INSERT INTO words (word, url) VALUES ($1, $2) RETURNING *",
+          [word, `./ed-sheeran/${word}`]
+        );
+      })
+    );
+
+    res.status(200).send({ msg: "Welcome to RU Hack Backend" });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.get("/words", async (req, res) => {
+  pool.query("SELECT * FROM words ORDER BY word ASC", (error, results) => {
+    if (error) {
+      throw error;
+    }
+    res.status(200).json(results.rows);
+  });
 });
 
 app.post("/sound", async (req, res) => {
